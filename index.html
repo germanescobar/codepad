@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Codepad</title>
+
+  <link rel="stylesheet" href="lib/codemirror.css">
+  <link rel="stylesheet" href="theme/dracula.css">
+
+</head>
+<body>
+  <h1>Este es el editor</h1>
+  <div class="editor"></div>
+
+  <script src="lib/codemirror.js"></script>
+  <script src="mode/javascript/javascript.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/4.2.0/firebase.js"></script>
+  <script>
+    // Initialize Firebase
+    var config = {
+      apiKey: "AIzaSyDUhOJ0Zt-KUDMtiCjNt4E3qybHQndm3fE",
+      authDomain: "codepad-75be6.firebaseapp.com",
+      databaseURL: "https://codepad-75be6.firebaseio.com",
+      projectId: "codepad-75be6",
+      storageBucket: "",
+      messagingSenderId: "135663807027"
+    };
+    firebase.initializeApp(config);
+
+
+    var codemirror = CodeMirror(document.querySelector(".editor"), {
+      value: "",
+      mode:  "javascript",
+      theme: "dracula"
+    });
+
+    function initOwner() {
+      // crear el registgro en firebase
+      firebase.database().ref("codepads").push({
+        content: ""
+      }).then(function(snapshot) {
+        window.location.hash = snapshot.key;
+        console.log("Se creó el registro con id " + snapshot.key);
+
+        // escucha los cambios del editor y los manda a firebase
+        codemirror.on("change", function(content) {
+          firebase.database().ref("codepads/" + snapshot.key).set({
+            content: content.getValue()
+          });
+        });
+      });
+    }
+
+    function initGuest() {
+      // traer el registro de firebase
+      var key = window.location.hash.substr(1);
+
+      console.log("El hash es " + key);
+      document.querySelector
+
+      // escucha todos los cambios de firebase
+      firebase.database().ref("codepads/" + key).on("value", function(snapshot) {
+        var obj = snapshot.val();
+        codemirror.setValue(obj.content);
+      });
+    }
+
+    if (window.location.hash) {
+      initGuest();
+    } else {
+      initOwner();
+    }
+
+  </script>
+</body>
+</html>
